@@ -8,13 +8,15 @@ const games = [
     desc: "Measure how fast you can react when the screen changes color.",
     color: "from-green-400 to-green-600",
     route: "/reaction",
+    progressRoute: "/progress-reaction", // added
   },
   {
     id: 2,
     title: "🧩 Memory Flip",
-    desc: "Test your memory by matching cards — coming soon!",
+    desc: "Test your memory by matching cards.",
     color: "from-blue-400 to-blue-600",
     route: "/memory",
+    progressRoute: "/progress-memory", // added
   },
   {
     id: 3,
@@ -34,22 +36,38 @@ const GameDashboard = () => {
         🧠 ThinkQuick+ Game Hub
       </h1>
       <p className="text-gray-300 mb-10 text-center max-w-2xl">
-        Challenge yourself with a collection of quick-thinking mini games designed
-        to boost your brain performance, focus, and speed. More coming soon!
+        Challenge yourself with quick-thinking mini games designed to boost your brain performance, focus, and speed.
       </p>
 
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 w-full max-w-6xl">
         {games.map((game) => (
           <div
             key={game.id}
-            className={`rounded-2xl p-6 bg-gradient-to-br ${game.color} shadow-lg cursor-pointer transform hover:scale-105 transition`}
-            onClick={() => {
-              if (game.route === "/reaction") navigate(game.route);
-              else alert("This game is coming soon 🚧");
-            }}
+            className={`rounded-2xl p-6 bg-gradient-to-br ${game.color} shadow-lg transform hover:scale-105 transition`}
           >
             <h2 className="text-2xl font-bold mb-3">{game.title}</h2>
-            <p className="text-sm text-gray-100">{game.desc}</p>
+            <p className="text-sm text-gray-100 mb-4">{game.desc}</p>
+
+            <div className="flex gap-3">
+              <button
+                className="px-3 py-1 bg-yellow-500 text-black rounded-md font-semibold hover:bg-yellow-400 transition"
+                onClick={() => {
+                  if (game.route === "/reaction" || game.route === "/memory") navigate(game.route);
+                  else alert("This game is coming soon 🚧");
+                }}
+              >
+                Play
+              </button>
+
+              {game.progressRoute && (
+                <button
+                  className="px-3 py-1 bg-green-500 text-black rounded-md font-semibold hover:bg-green-400 transition"
+                  onClick={() => navigate(game.progressRoute)}
+                >
+                  View Progress
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>

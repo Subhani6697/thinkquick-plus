@@ -72,9 +72,21 @@ const ReactionGame = () => {
           </p>
         )}
       </div>
+      <div className="flex flex-col items-center mt-8 w-full gap-4">
+  <button
+    onClick={() => window.location.href = "/dashboard"}
+    className="px-6 py-3 bg-blue-500 text-black rounded-lg font-semibold hover:bg-blue-400 transition"
+  >
+    Back to Dashboard
+  </button>
+  <button
+    onClick={() => window.location.href = "/progress-reaction"}
+    className="px-6 py-3 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition w-40"
+  >
+    View Progress
+  </button>
+</div>
 
-      {/* Progress Tracker Below */}
-      <ProgressTracker />
     </div>
   );
 };
