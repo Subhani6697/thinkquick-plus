@@ -24,6 +24,7 @@ const games = [
     desc: "Stay sharp — find patterns under pressure! (upcoming)",
     color: "from-yellow-400 to-yellow-600",
     route: "/focus",
+    progressRoute: "/progress-focus",
   },
 ];
 
@@ -52,7 +53,7 @@ const GameDashboard = () => {
               <button
                 className="px-3 py-1 bg-yellow-500 text-black rounded-md font-semibold hover:bg-yellow-400 transition"
                 onClick={() => {
-                  if (game.route === "/reaction" || game.route === "/memory") navigate(game.route);
+                  if (game.route === "/reaction" || game.route === "/memory" || game.route === "/focus") navigate(game.route);
                   else alert("This game is coming soon 🚧");
                 }}
               >
