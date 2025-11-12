@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ProgressTracker from "./ProgressTracker";
 
 const ReactionGame = () => {
   const [waiting, setWaiting] = useState(false);
@@ -37,6 +38,17 @@ const ReactionGame = () => {
       setReactionTime(time);
       setReady(false);
       setMessage(`Your reaction: ${time} ms. Click to try again.`);
+
+      // Save to localStorage
+      const history = JSON.parse(localStorage.getItem("reactionHistory")) || [];
+      const newAttempt = { attempt: history.length + 1, time };
+      const updated = [...history, newAttempt];
+      localStorage.setItem("reactionHistory", JSON.stringify(updated));
+
+      const best = JSON.parse(localStorage.getItem("bestTime"));
+      if (!best || time < best) {
+        localStorage.setItem("bestTime", JSON.stringify(time));
+      }
     }
   };
 
@@ -45,19 +57,24 @@ const ReactionGame = () => {
   }, [timeoutId]);
 
   return (
-    <div
-      onClick={handleClick}
-      className={`flex flex-col items-center justify-center h-[80vh] w-full rounded-2xl transition-all duration-300 cursor-pointer ${
-        waiting ? "bg-red-400" : ready ? "bg-green-400" : "bg-blue-400"
-      }`}
-    >
-      <h1 className="text-3xl font-bold text-white mb-4">⚡ Reaction Game</h1>
-      <p className="text-xl text-white">{message}</p>
-      {reactionTime && (
-        <p className="mt-2 text-lg text-white">
-          Best Time: <span className="font-semibold">{reactionTime} ms</span>
-        </p>
-      )}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white px-6">
+      <div
+        onClick={handleClick}
+        className={`flex flex-col items-center justify-center h-[60vh] w-full max-w-3xl rounded-2xl transition-all duration-300 cursor-pointer ${
+          waiting ? "bg-red-500" : ready ? "bg-green-500" : "bg-blue-600"
+        }`}
+      >
+        <h1 className="text-4xl font-extrabold mb-6">⚡ Reaction Game</h1>
+        <p className="text-2xl">{message}</p>
+        {reactionTime && (
+          <p className="mt-2 text-lg text-gray-200">
+            Last Reaction: <span className="font-semibold">{reactionTime} ms</span>
+          </p>
+        )}
+      </div>
+
+      {/* Progress Tracker Below */}
+      <ProgressTracker />
     </div>
   );
 };

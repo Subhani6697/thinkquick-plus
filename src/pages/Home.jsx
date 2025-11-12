@@ -9,7 +9,7 @@ const Home = () => {
       </h1>
       <p className="text-lg text-gray-300 max-w-xl mb-8">
         Train your brain with fun, fast, and interactive mini games. Improve your
-        focus, memory, and reflexes in minutes a day!
+        focus, memory, and reflexes in minutes a day!!!
       </p>
       <Link
         to="/dashboard"
