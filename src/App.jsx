@@ -16,6 +16,9 @@ import TimeSlipProgress from "./pages/TimeSlipProgress";
 import TimeSlip from "./components/TimeSlip";
 import EchoMemory from "./components/EchoMemory";
 import EchoMemoryProgress from "./pages/EchoMemoryProgress";
+import QuantumShift from "./components/QuantumShift";
+import QuantumShiftProgress from "./pages/QuantumShiftProgress";
+
 function App() {
   return (
     <Router>
@@ -39,6 +42,8 @@ function App() {
             <Route path="/timeslip" element={<TimeSlip />} />
             <Route path="/echo" element={<EchoMemory />} />
             <Route path="/progress-echo" element={<EchoMemoryProgress />} />
+            <Route path="/quantumshift" element={<QuantumShift />} />
+            <Route path="/progress-quantum" element={<QuantumShiftProgress />} />
 
           </Routes>
         </main>
