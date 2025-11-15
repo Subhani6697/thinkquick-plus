@@ -21,11 +21,28 @@ const games = [
   {
     id: 3,
     title: "🎯 Focus Tracker",
-    desc: "Stay sharp — find patterns under pressure! (upcoming)",
+    desc: "Stay sharp — find patterns under pressure!",
     color: "from-yellow-400 to-yellow-600",
     route: "/focus",
     progressRoute: "/progress-focus",
   },
+  {
+  id: 4,
+  title: "🕶️ Shadow Match",
+  desc: "Match objects to their shadows — visual memory + accuracy.",
+  color: "from-indigo-400 to-indigo-700",
+  route: "/shadow",
+  progressRoute: "/progress-shadow",
+},
+  {
+  id: 5,
+  title: "🌊 Wave Sync",
+  desc: "Click in rhythm — sync the moving marker to a target zone.",
+  color: "from-cyan-400 to-teal-600",
+  route: "/wave",
+  progressRoute: "/progress-wave",
+}
+
 ];
 
 const GameDashboard = () => {
@@ -53,7 +70,7 @@ const GameDashboard = () => {
               <button
                 className="px-3 py-1 bg-yellow-500 text-black rounded-md font-semibold hover:bg-yellow-400 transition"
                 onClick={() => {
-                  if (game.route === "/reaction" || game.route === "/memory" || game.route === "/focus") navigate(game.route);
+                  if (game.route === "/reaction" || game.route === "/memory" || game.route === "/focus" || game.route === "/shadow" || game.route === "/wave") navigate(game.route);
                   else alert("This game is coming soon 🚧");
                 }}
               >

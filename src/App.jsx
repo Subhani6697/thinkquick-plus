@@ -8,6 +8,10 @@ import ReactionGame from "./components/ReactionGame";
 import MemoryGame from "./components/MemoryGame";
 import ProgressTracker from "./components/ProgressTracker";
 import FocusTracker from "./components/FocusTracker";
+import ShadowMatch from "./components/ShadowMatch";
+import ShadowProgress from "./pages/ShadowProgress";
+import WaveSync from "./components/WaveSync";
+import WaveProgress from "./pages/WaveProgress";
 
 function App() {
   return (
@@ -24,6 +28,10 @@ function App() {
             <Route path="/progress-reaction" element={<ProgressTracker type="reaction" />} />
             <Route path="/progress-memory" element={<ProgressTracker type="memory" />} />
             <Route path="/progress-focus" element={<ProgressTracker type="focus" />} />
+            <Route path="/shadow" element={<ShadowMatch />} />
+            <Route path="/progress-shadow" element={<ShadowProgress />} /> 
+            <Route path="/wave" element={<WaveSync />} />
+            <Route path="/progress-wave" element={<WaveProgress />} />  
           </Routes>
         </main>
         <Footer />
