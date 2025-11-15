@@ -14,7 +14,8 @@ import WaveSync from "./components/WaveSync";
 import WaveProgress from "./pages/WaveProgress";
 import TimeSlipProgress from "./pages/TimeSlipProgress";
 import TimeSlip from "./components/TimeSlip";
-
+import EchoMemory from "./components/EchoMemory";
+import EchoMemoryProgress from "./pages/EchoMemoryProgress";
 function App() {
   return (
     <Router>
@@ -36,7 +37,9 @@ function App() {
             <Route path="/progress-wave" element={<WaveProgress />} /> 
             <Route path="/progress-timeslip" element={<TimeSlipProgress />} />
             <Route path="/timeslip" element={<TimeSlip />} />
- 
+            <Route path="/echo" element={<EchoMemory />} />
+            <Route path="/progress-echo" element={<EchoMemoryProgress />} />
+
           </Routes>
         </main>
         <Footer />
