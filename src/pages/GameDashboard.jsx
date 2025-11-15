@@ -41,7 +41,17 @@ const games = [
   color: "from-cyan-400 to-teal-600",
   route: "/wave",
   progressRoute: "/progress-wave",
-}
+},
+
+{
+  id: 6,
+  title: "⏳ TimeSlip",
+  desc: "Tap exactly when the invisible timer hits the target — precision time sense challenge.",
+  color: "from-purple-400 to-purple-700",
+  route: "/timeslip",
+  progressRoute: "/progress-timeslip",
+},
+
 
 ];
 
@@ -70,7 +80,7 @@ const GameDashboard = () => {
               <button
                 className="px-3 py-1 bg-yellow-500 text-black rounded-md font-semibold hover:bg-yellow-400 transition"
                 onClick={() => {
-                  if (game.route === "/reaction" || game.route === "/memory" || game.route === "/focus" || game.route === "/shadow" || game.route === "/wave") navigate(game.route);
+                  if (game.route === "/reaction" || game.route === "/memory" || game.route === "/focus" || game.route === "/shadow" || game.route === "/wave" || game.route === "/timeslip") navigate(game.route);
                   else alert("This game is coming soon 🚧");
                 }}
               >

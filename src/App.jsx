@@ -12,6 +12,8 @@ import ShadowMatch from "./components/ShadowMatch";
 import ShadowProgress from "./pages/ShadowProgress";
 import WaveSync from "./components/WaveSync";
 import WaveProgress from "./pages/WaveProgress";
+import TimeSlipProgress from "./pages/TimeSlipProgress";
+import TimeSlip from "./components/TimeSlip";
 
 function App() {
   return (
@@ -31,7 +33,10 @@ function App() {
             <Route path="/shadow" element={<ShadowMatch />} />
             <Route path="/progress-shadow" element={<ShadowProgress />} /> 
             <Route path="/wave" element={<WaveSync />} />
-            <Route path="/progress-wave" element={<WaveProgress />} />  
+            <Route path="/progress-wave" element={<WaveProgress />} /> 
+            <Route path="/progress-timeslip" element={<TimeSlipProgress />} />
+            <Route path="/timeslip" element={<TimeSlip />} />
+ 
           </Routes>
         </main>
         <Footer />
