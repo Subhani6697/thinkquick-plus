@@ -65,13 +65,19 @@ const games = [
   id: 8,
   title: "⚛ Quantum Shift",
   desc: "Predict shifting quantum states using quick pattern recognition.",
-  color: "from-purple-400 to-purple-700",
+  color: "from-orange-400 to-orange-700",
   route: "/quantumshift",
   progressRoute: "/progress-quantum",
-}
+},
 
-
-
+{
+  id: 9,
+  title: "🪞 Mirror Mind",
+  desc: "Everything is reversed — move the ball using inverted controls.",
+  color: "from-pink-400 to-pink-700",
+  route: "/mirrormind",
+  progressRoute: "/progress-mirrormind",
+},
 
 
 ];
@@ -101,7 +107,7 @@ const GameDashboard = () => {
               <button
                 className="px-3 py-1 bg-yellow-500 text-black rounded-md font-semibold hover:bg-yellow-400 transition"
                 onClick={() => {
-                  if (game.route === "/reaction" || game.route === "/memory" || game.route === "/focus" || game.route === "/shadow" || game.route === "/wave" || game.route === "/timeslip" || game.route === "/echo" || game.route === "/quantumshift") navigate(game.route);
+                  if (game.route === "/reaction" || game.route === "/memory" || game.route === "/focus" || game.route === "/shadow" || game.route === "/wave" || game.route === "/timeslip" || game.route === "/echo" || game.route === "/quantumshift" || game.route === "/mirrormind") navigate(game.route);
                   else alert("This game is coming soon 🚧");
                 }}
               >

@@ -18,6 +18,9 @@ import EchoMemory from "./components/EchoMemory";
 import EchoMemoryProgress from "./pages/EchoMemoryProgress";
 import QuantumShift from "./components/QuantumShift";
 import QuantumShiftProgress from "./pages/QuantumShiftProgress";
+import MirrorMind from "./components/MirrorMind";
+import MirrorMindProgress from "./pages/MirrorMindProgress";
+
 
 function App() {
   return (
@@ -44,6 +47,9 @@ function App() {
             <Route path="/progress-echo" element={<EchoMemoryProgress />} />
             <Route path="/quantumshift" element={<QuantumShift />} />
             <Route path="/progress-quantum" element={<QuantumShiftProgress />} />
+            <Route path="/mirrormind" element={<MirrorMind />} />
+            <Route path="/progress-mirrormind" element={<MirrorMindProgress />} />
+
 
           </Routes>
         </main>

@@ -8,7 +8,7 @@ const Footer = () => {
         All Rights Reserved.
       </p>
       <p className="text-xs text-gray-400 mt-1">
-        Built with ❤️ using React + TailwindCSS
+        ❤️
       </p>
     </footer>
   );
