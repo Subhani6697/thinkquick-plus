@@ -12,7 +12,7 @@ const Home = () => {
         focus, memory, and reflexes in minutes a day!!!
       </p>
       <Link
-        to="/dashboard"
+        to="/categories"
         className="bg-yellow-400 text-gray-900 font-semibold px-6 py-3 rounded-xl hover:bg-yellow-300 transition"
       >
         🎮 Enter Game Hub

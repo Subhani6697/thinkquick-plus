@@ -20,6 +20,18 @@ import QuantumShift from "./components/QuantumShift";
 import QuantumShiftProgress from "./pages/QuantumShiftProgress";
 import MirrorMind from "./components/MirrorMind";
 import MirrorMindProgress from "./pages/MirrorMindProgress";
+import ThoughtChain from "./components/ThoughtChain";
+import ThoughtChainProgress from "./pages/ThoughtChainProgress";
+import GameCategories from "./pages/GameCategories";
+import Leaderboard from "./pages/Leaderboard";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+
+
+
 
 
 function App() {
@@ -49,6 +61,18 @@ function App() {
             <Route path="/progress-quantum" element={<QuantumShiftProgress />} />
             <Route path="/mirrormind" element={<MirrorMind />} />
             <Route path="/progress-mirrormind" element={<MirrorMindProgress />} />
+            <Route path="/thoughtchain" element={<ThoughtChain />} />
+            <Route path="/progress-thoughtchain" element={<ThoughtChainProgress />} />
+            <Route path="/categories" element={<GameCategories />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+
+
+
 
 
           </Routes>

@@ -79,6 +79,16 @@ const games = [
   progressRoute: "/progress-mirrormind",
 },
 
+{
+  id: 10,
+  title: "🔗 Thought Chain",
+  desc: "Connect meanings under pressure — semantic speed test.",
+  color: "from-pink-400 to-pink-600",
+  route: "/thoughtchain",
+  progressRoute: "/progress-thoughtchain",
+}
+
+
 
 ];
 
@@ -107,7 +117,7 @@ const GameDashboard = () => {
               <button
                 className="px-3 py-1 bg-yellow-500 text-black rounded-md font-semibold hover:bg-yellow-400 transition"
                 onClick={() => {
-                  if (game.route === "/reaction" || game.route === "/memory" || game.route === "/focus" || game.route === "/shadow" || game.route === "/wave" || game.route === "/timeslip" || game.route === "/echo" || game.route === "/quantumshift" || game.route === "/mirrormind") navigate(game.route);
+                  if (game.route === "/reaction" || game.route === "/memory" || game.route === "/focus" || game.route === "/shadow" || game.route === "/wave" || game.route === "/timeslip" || game.route === "/echo" || game.route === "/quantumshift" || game.route === "/mirrormind" || game.route === "/thoughtchain") navigate(game.route);
                   else alert("This game is coming soon 🚧");
                 }}
               >
