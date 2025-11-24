@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const Home = () => {
   return (
-    <div className="bg-gray-950 min-h-screen text-white flex flex-col items-center justify-center p-4 text-center">
+    <div className="bg-gray-800 min-h-screen text-white flex flex-col items-center justify-center p-4 text-center">
       <h1 className="text-5xl font-extrabold text-yellow-400 mb-4">
         Welcome to ThinkQuick+
       </h1>
