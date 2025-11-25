@@ -108,6 +108,24 @@ const ProgressTracker = ({ type }) => {
           Back to Dashboard
         </button>
       </div>
+
+            <div className="text-center mt-6">
+        <button
+            onClick={() =>
+              navigate(
+                type === "reaction"
+                  ? "/reaction"
+                  : type === "memory"
+                  ? "/memory"
+                  : "/focus"
+              )
+            }
+            className="px-4 py-2 bg-blue-500 text-black rounded-lg hover:bg-blue-400 transition"
+          >
+            Go to Play
+          </button>
+
+      </div>
     </div>
   );
 };

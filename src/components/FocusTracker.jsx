@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
-import ProgressTracker from "./ProgressTracker";
 
 const FocusTracker = () => {
   const [gridSize, setGridSize] = useState(3);
   const [pattern, setPattern] = useState([]);
   const [userSelection, setUserSelection] = useState([]);
+
+  // the pattern is shown for a moment
   const [showPattern, setShowPattern] = useState(false);
+
   const [level, setLevel] = useState(1);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
 
-  // Show pattern briefly
+  // Show pattern for a short time
   useEffect(() => {
     if (pattern.length > 0 && showPattern) {
       const timer = setTimeout(() => setShowPattern(false), 1000 + gridSize * 200);
@@ -18,7 +20,7 @@ const FocusTracker = () => {
     }
   }, [pattern, showPattern, gridSize]);
 
-  // Start new round
+  // Start a new game round
   const startGame = () => {
     const newPattern = generatePattern(gridSize);
     setPattern(newPattern);
@@ -27,48 +29,58 @@ const FocusTracker = () => {
     setGameOver(false);
   };
 
+  // Generate random pattern
   const generatePattern = (size) => {
     const count = Math.min(size, 5); // number of highlighted squares
     const total = size * size;
+
     const indices = new Set();
     while (indices.size < count) {
       indices.add(Math.floor(Math.random() * total));
     }
+
     return [...indices];
   };
 
+  // user clicks tiles
   const handleTileClick = (index) => {
     if (showPattern || gameOver) return;
 
     setUserSelection((prev) => {
-      const updated = prev.includes(index)
+      return prev.includes(index)
         ? prev.filter((i) => i !== index)
         : [...prev, index];
-      return updated;
     });
   };
 
+  // Check accuracy
   const checkPattern = () => {
     const correct = pattern.every((i) => userSelection.includes(i));
     const missed = userSelection.filter((i) => !pattern.includes(i)).length;
     const accuracy = Math.max(0, ((pattern.length - missed) / pattern.length) * 100);
 
     if (accuracy === 100) {
-      setScore((prev) => prev + 1);
+      // Perfect
+      const newScore = score + 1;
+      setScore(newScore);
       setLevel((prev) => prev + 1);
       setGridSize((prev) => (prev < 6 ? prev + 1 : prev));
-      saveProgress(score + 1);
+
+      saveProgress(newScore);
       startGame();
     } else {
+      // Game over
       setGameOver(true);
       saveProgress(score);
     }
   };
 
+  // Save history + best
   const saveProgress = (points) => {
     const history = JSON.parse(localStorage.getItem("focusHistory")) || [];
     const newAttempt = { attempt: history.length + 1, score: points };
     const updated = [...history, newAttempt];
+
     localStorage.setItem("focusHistory", JSON.stringify(updated));
 
     const best = JSON.parse(localStorage.getItem("focusBest"));
@@ -79,22 +91,23 @@ const FocusTracker = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white px-6">
+
       <h1 className="text-4xl font-extrabold text-yellow-400 mb-4">
         🎯 Focus Tracker
       </h1>
+
       <p className="text-gray-300 mb-6 text-center max-w-lg">
         Watch carefully! Tiles will flash — then click them to repeat the pattern.
       </p>
 
       <div
-        className={`grid gap-2 mb-6`}
-        style={{
-          gridTemplateColumns: `repeat(${gridSize}, 60px)`,
-        }}
+        className="grid gap-2 mb-6"
+        style={{ gridTemplateColumns: `repeat(${gridSize}, 60px)` }}
       >
         {Array.from({ length: gridSize * gridSize }).map((_, index) => {
           const isShown = showPattern && pattern.includes(index);
           const isSelected = userSelection.includes(index);
+
           return (
             <div
               key={index}
@@ -116,6 +129,7 @@ const FocusTracker = () => {
           <p className="text-red-400 font-semibold mb-3">
             ❌ Game Over! Final Score: {score}
           </p>
+
           <button
             onClick={() => {
               setGridSize(3);
@@ -146,6 +160,7 @@ const FocusTracker = () => {
         >
           Back to Dashboard
         </button>
+
         <button
           onClick={() => (window.location.href = "/progress-focus")}
           className="px-6 py-3 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition w-40"
@@ -153,6 +168,7 @@ const FocusTracker = () => {
           View Progress
         </button>
       </div>
+
     </div>
   );
 };

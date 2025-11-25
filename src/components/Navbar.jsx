@@ -57,9 +57,10 @@ const Navbar = () => {
               Sign Up
             </Link>
 
+            {/* Admin Login (public) */}
             <Link
               to="/admin-login"
-              className="px-3 py-1 bg-red-500 text-black rounded-lg text-sm font-semibold hover:bg-green-400 transition whitespace-nowrap"
+              className="px-3 py-1 bg-red-500 text-black rounded-lg text-sm font-semibold hover:bg-red-400 transition whitespace-nowrap"
             >
               Admin
             </Link>
@@ -68,17 +69,28 @@ const Navbar = () => {
         ) : (
           <div className="flex items-center gap-3">
 
+            {/* Admin Dashboard visible ONLY to admins */}
+            {user?.isAdmin && (
+              <Link
+                to="/admin"
+                className="px-3 py-1 bg-yellow-500 text-black rounded-lg text-sm font-semibold hover:bg-green-400 transition whitespace-nowrap"
+              >
+                Admin Dashboard
+              </Link>
+            )}
+
             {/* Show Username */}
-            <span className="text-sm text-gray-300">
-              Hi, <span className="text-yellow-300 font-semibold">
-                {user?.displayName}
+            <span className="text-sm text-gray-300 whitespace-nowrap">
+              Hi,{" "}
+              <span className="text-yellow-300 font-semibold">
+                {user?.displayName || user?.email}
               </span>
             </span>
 
             {/* Logout */}
             <button
               onClick={logout}
-              className="px-3 py-1 bg-red-500 text-black rounded-lg text-sm font-semibold hover:bg-red-400 transition"
+              className="px-3 py-1 bg-red-500 text-black rounded-lg text-sm font-semibold hover:bg-red-400 transition whitespace-nowrap"
             >
               Logout
             </button>
