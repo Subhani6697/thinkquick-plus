@@ -56,6 +56,14 @@ const Navbar = () => {
             >
               Sign Up
             </Link>
+
+            <Link
+              to="/admin-login"
+              className="px-3 py-1 bg-purple-500 text-black rounded-lg text-sm font-semibold hover:bg-purple-400 transition"
+            >
+              Admin
+            </Link>
+
           </>
         ) : (
           <div className="flex items-center gap-3">
@@ -63,7 +71,7 @@ const Navbar = () => {
             {/* Show Username */}
             <span className="text-sm text-gray-300">
               Hi, <span className="text-yellow-300 font-semibold">
-                {user?.displayName || user?.email}
+                {user?.displayName}
               </span>
             </span>
 
