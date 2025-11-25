@@ -44,7 +44,7 @@ const Navbar = () => {
             {/* Login */}
             <Link
               to="/login"
-              className="px-3 py-1 bg-blue-500 text-black rounded-lg text-sm font-semibold hover:bg-blue-400 transition"
+              className="px-3 py-1 bg-yellow-500 text-black rounded-lg text-sm font-semibold hover:bg-green-400 transition whitespace-nowrap"
             >
               Login
             </Link>
@@ -52,14 +52,14 @@ const Navbar = () => {
             {/* Sign Up */}
             <Link
               to="/signup"
-              className="px-3 py-1 bg-green-500 text-black rounded-lg text-sm font-semibold hover:bg-green-400 transition"
+              className="px-3 py-1 bg-yellow-500 text-black rounded-lg text-sm font-semibold hover:bg-green-400 transition whitespace-nowrap"
             >
               Sign Up
             </Link>
 
             <Link
               to="/admin-login"
-              className="px-3 py-1 bg-purple-500 text-black rounded-lg text-sm font-semibold hover:bg-purple-400 transition"
+              className="px-3 py-1 bg-red-500 text-black rounded-lg text-sm font-semibold hover:bg-green-400 transition whitespace-nowrap"
             >
               Admin
             </Link>
