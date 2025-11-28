@@ -60,7 +60,7 @@ const Navbar = () => {
             {/* Admin Login (public) */}
             <Link
               to="/admin-login"
-              className="px-3 py-1 bg-red-500 text-black rounded-lg text-sm font-semibold hover:bg-red-400 transition whitespace-nowrap"
+              className="px-3 py-1 bg-red-500 text-black rounded-lg text-sm font-semibold hover:bg-green-400 transition whitespace-nowrap"
             >
               Admin
             </Link>

@@ -1,325 +1,175 @@
-// src/pages/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { db } from "../firebase/firebaseConfig";
+import { useAuth } from "../context/AuthContext";
 import {
   collection,
-  getDocs,
-  orderBy,
-  query,
-  updateDoc,
   doc,
-  where,
+  getDocs,
+  getDoc,
+  deleteDoc,
 } from "firebase/firestore";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-
   const [users, setUsers] = useState([]);
-  const [gameStats, setGameStats] = useState({});
-  const [loadingUsers, setLoadingUsers] = useState(true);
-  const [loadingGames, setLoadingGames] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview"); // overview | users | games
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [gameData, setGameData] = useState(null);
 
-  // 🔹 Load users
+  // Fetch all users in Firestore
+  const fetchUsers = async () => {
+    setLoading(true);
+    const snap = await getDocs(collection(db, "users"));
+
+    const arr = snap.docs.map((doc) => ({
+      uid: doc.id,
+      ...doc.data(),
+    }));
+
+    setUsers(arr);
+    setLoading(false);
+  };
+
+  // Fetch progress for selected user
+  const fetchUserProgress = async (uid) => {
+    setSelectedUser(uid);
+    setGameData(null);
+
+    const progressRef = collection(db, "users", uid, "progress");
+    const gamesSnap = await getDocs(progressRef);
+
+    const data = {};
+    for (const gameDoc of gamesSnap.docs) {
+      data[gameDoc.id] = gameDoc.data();
+    }
+
+    setGameData(data);
+  };
+
+  // Reset user progress
+  const resetUserProgress = async (uid) => {
+    const progressRef = collection(db, "users", uid, "progress");
+    const gamesSnap = await getDocs(progressRef);
+
+    const deletions = gamesSnap.docs.map((g) =>
+      deleteDoc(doc(db, "users", uid, "progress", g.id))
+    );
+
+    await Promise.all(deletions);
+
+    alert("Progress reset successfully!");
+    fetchUserProgress(uid);
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const qUsers = query(collection(db, "users"), orderBy("email", "asc"));
-        const snap = await getDocs(qUsers);
-        const arr = [];
-        snap.forEach((d) => {
-          arr.push({ id: d.id, ...d.data() });
-        });
-        setUsers(arr);
-      } catch (err) {
-        console.error("Error loading users:", err);
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
-
     fetchUsers();
   }, []);
 
-  // 🔹 Load game attempts and aggregate per gameType
-  useEffect(() => {
-    const fetchGameStats = async () => {
-      try {
-        const snap = await getDocs(collection(db, "gameAttempts"));
-        const stats = {};
-
-        snap.forEach((docSnap) => {
-          const data = docSnap.data();
-          const gameType = data.gameType;
-
-          if (!gameType) return;
-
-          if (!stats[gameType]) {
-            stats[gameType] = {
-              count: 0,
-              best: null,
-              avg: 0,
-            };
-          }
-
-          stats[gameType].count += 1;
-
-          // pick numeric value based on game type
-          let value;
-          if (gameType === "reaction") value = data.timeMs;
-          else if (gameType === "memory") value = data.moves;
-          else value = data.score;
-
-          if (typeof value !== "number") return;
-
-          // best: for reaction/memory = lower is better, for others = higher
-          if (stats[gameType].best === null) {
-            stats[gameType].best = value;
-          } else {
-            if (gameType === "reaction" || gameType === "memory") {
-              stats[gameType].best = Math.min(stats[gameType].best, value);
-            } else {
-              stats[gameType].best = Math.max(stats[gameType].best, value);
-            }
-          }
-
-          // Accumulate avg in a simple way
-          stats[gameType].avg += value;
-        });
-
-        // finalize averages
-        Object.keys(stats).forEach((key) => {
-          const s = stats[key];
-          if (s.count > 0) {
-            s.avg = Number((s.avg / s.count).toFixed(2));
-          }
-        });
-
-        setGameStats(stats);
-      } catch (err) {
-        console.error("Error loading game stats:", err);
-      } finally {
-        setLoadingGames(false);
-      }
-    };
-
-    fetchGameStats();
-  }, []);
-
-  const promoteToAdmin = async (uid) => {
-    try {
-      await updateDoc(doc(db, "users", uid), { isAdmin: true });
-      setUsers((prev) =>
-        prev.map((u) => (u.id === uid ? { ...u, isAdmin: true } : u))
-      );
-      alert("User promoted to admin");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to promote user");
-    }
-  };
-
-  const filterAttemptsByUser = async (uid) => {
-    // Example: you might later show per-user attempts
-    try {
-      const q = query(
-        collection(db, "gameAttempts"),
-        where("uid", "==", uid)
-      );
-      const snap = await getDocs(q);
-      console.log("Attempts for user", uid, snap.size);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  if (!user?.isAdmin) {
+    return (
+      <div className="text-center text-red-500 text-xl mt-10">
+        ❌ Access Denied — Admins Only
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-gray-900 min-h-screen text-white flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gray-950 p-6 border-r border-gray-800">
-        <h1 className="text-2xl font-bold text-yellow-400 mb-6">
-          Admin Panel
-        </h1>
+    <div className="min-h-screen bg-gray-900 text-white p-10">
+      <h1 className="text-4xl font-bold text-yellow-400 mb-6">
+        🔐 Admin Dashboard
+      </h1>
 
-        <p className="text-sm text-gray-400 mb-4">
-          Logged in as:{" "}
-          <span className="text-blue-300">
-            {user?.displayName || user?.email}
-          </span>
-        </p>
+      {loading ? (
+        <p className="text-gray-300">Loading users...</p>
+      ) : (
+        <div className="grid grid-cols-3 gap-6">
+          {/* USER LIST */}
+          <div className="col-span-1 bg-gray-800 p-6 rounded-xl shadow">
+            <h2 className="text-xl font-semibold mb-4">All Users</h2>
+            <ul className="space-y-3">
+              {users.map((u) => (
+                <li
+                  key={u.uid}
+                  className={`p-3 rounded-lg cursor-pointer hover:bg-gray-700 ${
+                    selectedUser === u.uid ? "bg-gray-700" : "bg-gray-800"
+                  }`}
+                  onClick={() => fetchUserProgress(u.uid)}
+                >
+                  <p className="font-semibold">{u.name || "Unknown User"}</p>
+                  <p className="text-sm text-gray-400">{u.email}</p>
+                  {u.isAdmin && (
+                    <span className="text-xs text-yellow-300">Admin</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        <nav className="flex flex-col gap-2 mt-4">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`text-left px-3 py-2 rounded-lg text-sm ${
-              activeTab === "overview"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-800 hover:bg-gray-700"
-            }`}
-          >
-            Overview
-          </button>
-
-          <button
-            onClick={() => setActiveTab("users")}
-            className={`text-left px-3 py-2 rounded-lg text-sm ${
-              activeTab === "users"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-800 hover:bg-gray-700"
-            }`}
-          >
-            Users
-          </button>
-
-          <button
-            onClick={() => setActiveTab("games")}
-            className={`text-left px-3 py-2 rounded-lg text-sm ${
-              activeTab === "games"
-                ? "bg-yellow-500 text-black"
-                : "bg-gray-800 hover:bg-gray-700"
-            }`}
-          >
-            Game Stats
-          </button>
-        </nav>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 p-8">
-        {activeTab === "overview" && (
-          <>
-            <h2 className="text-2xl font-bold text-yellow-400 mb-4">
-              Overview
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-gray-800 p-5 rounded-xl shadow">
-                <p className="text-sm text-gray-400">Total Users</p>
-                <p className="text-3xl font-bold mt-2">
-                  {loadingUsers ? "…" : users.length}
-                </p>
-              </div>
-
-              <div className="bg-gray-800 p-5 rounded-xl shadow">
-                <p className="text-sm text-gray-400">Tracked Games</p>
-                <p className="text-3xl font-bold mt-2">
-                  {loadingGames ? "…" : Object.keys(gameStats).length}
-                </p>
-              </div>
-
-              <div className="bg-gray-800 p-5 rounded-xl shadow">
-                <p className="text-sm text-gray-400">Admins</p>
-                <p className="text-3xl font-bold mt-2">
-                  {users.filter((u) => u.isAdmin).length}
-                </p>
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeTab === "users" && (
-          <>
-            <h2 className="text-2xl font-bold text-yellow-400 mb-4">
-              Users
-            </h2>
-            {loadingUsers ? (
-              <p className="text-gray-400">Loading users…</p>
-            ) : users.length === 0 ? (
-              <p className="text-gray-400">No users found.</p>
+          {/* GAME DATA */}
+          <div className="col-span-2 bg-gray-800 p-6 rounded-xl shadow">
+            {!selectedUser ? (
+              <p className="text-gray-400">Select a user to view progress</p>
+            ) : !gameData ? (
+              <p className="text-gray-400">Loading progress...</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-800">
-                      <th className="px-4 py-2 text-left">Name</th>
-                      <th className="px-4 py-2 text-left">Email</th>
-                      <th className="px-4 py-2 text-left">Admin</th>
-                      <th className="px-4 py-2 text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((u) => (
-                      <tr key={u.id} className="border-b border-gray-800">
-                        <td className="px-4 py-2">
-                          {u.name || u.displayName || "—"}
-                        </td>
-                        <td className="px-4 py-2">{u.email}</td>
-                        <td className="px-4 py-2">
-                          {u.isAdmin ? (
-                            <span className="text-green-400 font-semibold">
-                              Yes
-                            </span>
-                          ) : (
-                            "No"
-                          )}
-                        </td>
-                        <td className="px-4 py-2 flex gap-2">
-                          {!u.isAdmin && (
-                            <button
-                              onClick={() => promoteToAdmin(u.id)}
-                              className="px-3 py-1 text-xs bg-purple-500 text-black rounded-lg hover:bg-purple-400"
-                            >
-                              Make Admin
-                            </button>
-                          )}
-                          <button
-                            onClick={() => filterAttemptsByUser(u.id)}
-                            className="px-3 py-1 text-xs bg-gray-700 rounded-lg hover:bg-gray-600"
-                          >
-                            View Attempts (console)
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </>
-        )}
+              <>
+                <h2 className="text-2xl font-semibold mb-4">
+                  📊 Game Progress for User
+                </h2>
 
-        {activeTab === "games" && (
-          <>
-            <h2 className="text-2xl font-bold text-yellow-400 mb-4">
-              Game Stats
-            </h2>
-            {loadingGames ? (
-              <p className="text-gray-400">Loading game stats…</p>
-            ) : Object.keys(gameStats).length === 0 ? (
-              <p className="text-gray-400">No game attempts found yet.</p>
-            ) : (
-              <div className="grid md:grid-cols-3 gap-6">
-                {Object.entries(gameStats).map(([gameType, s]) => (
-                  <div
-                    key={gameType}
-                    className="bg-gray-800 p-5 rounded-xl shadow"
-                  >
-                    <p className="text-lg font-semibold capitalize mb-2">
-                      {gameType}
-                    </p>
-                    <p className="text-sm text-gray-400">
-                      Attempts:{" "}
-                      <span className="text-white font-bold">{s.count}</span>
-                    </p>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Best:{" "}
-                      <span className="text-white font-bold">
-                        {s.best !== null ? s.best : "—"}
-                      </span>
-                    </p>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Avg:{" "}
-                      <span className="text-white font-bold">
-                        {s.avg || "—"}
-                      </span>
-                    </p>
-                  </div>
-                ))}
-              </div>
+                {/* Reaction */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-yellow-300">
+                    ⚡ Reaction Time
+                  </h3>
+                  {gameData.reaction ? (
+                    <pre className="bg-gray-700 p-3 rounded-lg mt-2 text-sm">
+                      {JSON.stringify(gameData.reaction, null, 2)}
+                    </pre>
+                  ) : (
+                    <p className="text-gray-400 mt-2">No data</p>
+                  )}
+                </div>
+
+                {/* Memory */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-yellow-300">
+                    🧠 Memory Game
+                  </h3>
+                  {gameData.memory ? (
+                    <pre className="bg-gray-700 p-3 rounded-lg mt-2 text-sm">
+                      {JSON.stringify(gameData.memory, null, 2)}
+                    </pre>
+                  ) : (
+                    <p className="text-gray-400 mt-2">No data</p>
+                  )}
+                </div>
+
+                {/* Focus */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-yellow-300">
+                    🎯 Focus Game
+                  </h3>
+                  {gameData.focus ? (
+                    <pre className="bg-gray-700 p-3 rounded-lg mt-2 text-sm">
+                      {JSON.stringify(gameData.focus, null, 2)}
+                    </pre>
+                  ) : (
+                    <p className="text-gray-400 mt-2">No data</p>
+                  )}
+                </div>
+
+                <button
+                  className="px-4 py-2 bg-red-500 text-black rounded-lg hover:bg-red-400 mt-4"
+                  onClick={() => resetUserProgress(selectedUser)}
+                >
+                  Reset All Progress
+                </button>
+              </>
             )}
-          </>
-        )}
-      </main>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

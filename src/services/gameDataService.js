@@ -1,148 +1,91 @@
-// src/services/gameDataService.js
-import {
-  collection,
-  addDoc,
-  serverTimestamp,
-  doc,
-  getDoc,
-  setDoc,
-} from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
 
-/**
- * Helper to safely get nested stats for a user
- */
-const getStatsSafe = (snap) => {
-  if (!snap.exists()) return {};
-  const data = snap.data();
-  return data.stats || {};
-};
+/*
+  Structure saved in Firestore:
+  {
+    history: [
+      { attempt: 1, value: 350 },
+      { attempt: 2, value: 290 }
+    ],
+    best: { attempt: 2, value: 290 }
+  }
+*/
 
-/**
- * 🔹 Save Reaction result
- * - Stores a game attempt in `gameAttempts`
- * - Updates user stats in `users/{uid}.stats.reaction`
- */
-export const saveReactionResult = async (uid, timeMs) => {
-  if (!uid) return;
-
-  // 1) Save attempt in global collection
-  await addDoc(collection(db, "gameAttempts"), {
-    uid,
-    gameType: "reaction",
-    timeMs,
-    createdAt: serverTimestamp(),
-  });
-
-  // 2) Update user stats
-  const userRef = doc(db, "users", uid);
-  const snap = await getDoc(userRef);
-  const stats = getStatsSafe(snap);
-  const current = stats.reaction || {};
-
-  const newBest =
-    typeof current.bestTime === "number"
-      ? Math.min(current.bestTime, timeMs)
-      : timeMs;
-
-  const attempts = (current.attempts || 0) + 1;
-
-  await setDoc(
-    userRef,
-    {
-      stats: {
-        ...stats,
-        reaction: {
-          bestTime: newBest,
-          lastTime: timeMs,
-          attempts,
-        },
-      },
-    },
-    { merge: true }
-  );
-};
-
-/**
- * 🔹 Save Memory result
- * - `moves` (lower is better)
- */
-export const saveMemoryResult = async (uid, moves) => {
-  if (!uid) return;
-
-  await addDoc(collection(db, "gameAttempts"), {
-    uid,
-    gameType: "memory",
-    moves,
-    createdAt: serverTimestamp(),
-  });
+export const saveGameResult = async (uid, game, value) => {
+  if (!uid || !game) return;
 
   const userRef = doc(db, "users", uid);
-  const snap = await getDoc(userRef);
-  const stats = getStatsSafe(snap);
-  const current = stats.memory || {};
 
-  const newBest =
-    typeof current.bestMoves === "number"
-      ? Math.min(current.bestMoves, moves)
-      : moves;
+  // Ensure root user doc exists
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      email: "",
+      name: "",
+      isAdmin: false,
+    });
+  }
 
-  const attempts = (current.attempts || 0) + 1;
+  const gameRef = doc(db, "users", uid, "progress", game);
+  const gameSnap = await getDoc(gameRef);
 
-  await setDoc(
-    userRef,
-    {
-      stats: {
-        ...stats,
-        memory: {
-          bestMoves: newBest,
-          lastMoves: moves,
-          attempts,
-        },
-      },
-    },
-    { merge: true }
-  );
-};
+  let history = [];
+  let best = null;
 
-/**
- * 🔹 Save Focus result
- * - `score` (higher is better)
- */
-export const saveFocusResult = async (uid, score) => {
-  if (!uid) return;
+  if (gameSnap.exists()) {
+    history = gameSnap.data().history || [];
+    best = gameSnap.data().best || null;
+  }
 
-  await addDoc(collection(db, "gameAttempts"), {
-    uid,
-    gameType: "focus",
-    score,
-    createdAt: serverTimestamp(),
+  // Add new entry
+  const newEntry = {
+    attempt: history.length + 1,
+    value: value, // numeric score/time
+  };
+
+  const updatedHistory = [...history, newEntry];
+
+  // Determine "better" rules per game
+  const isBetter =
+    best === null
+      ? true
+      : game === "focus"
+      ? value > best.value // higher is better
+      : value < best.value; // reaction & memory: lower is better
+
+  const updatedBest = isBetter ? newEntry : best;
+
+  await setDoc(gameRef, {
+    history: updatedHistory,
+    best: updatedBest,
   });
 
-  const userRef = doc(db, "users", uid);
-  const snap = await getDoc(userRef);
-  const stats = getStatsSafe(snap);
-  const current = stats.focus || {};
+  console.log(`💾 Saved result for ${game}:`, newEntry);
+};
 
-  const newBest =
-    typeof current.bestScore === "number"
-      ? Math.max(current.bestScore, score)
-      : score;
+// --------------------------------------------------------
+// Load Progress
+// --------------------------------------------------------
+export const loadProgress = async (uid, game) => {
+  if (!uid) return { history: [], best: null };
 
-  const attempts = (current.attempts || 0) + 1;
+  const ref = doc(db, "users", uid, "progress", game);
+  const snap = await getDoc(ref);
 
-  await setDoc(
-    userRef,
-    {
-      stats: {
-        ...stats,
-        focus: {
-          bestScore: newBest,
-          lastScore: score,
-          attempts,
-        },
-      },
-    },
-    { merge: true }
-  );
+  if (!snap.exists()) return { history: [], best: null };
+  return snap.data();
+};
+
+// --------------------------------------------------------
+// Reset Progress
+// --------------------------------------------------------
+export const resetProgress = async (uid, game) => {
+  const ref = doc(db, "users", uid, "progress", game);
+  await setDoc(ref, { history: [], best: null });
 };

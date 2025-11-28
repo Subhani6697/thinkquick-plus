@@ -1,118 +1,94 @@
 import React, { useState, useEffect } from "react";
+import { saveGameResult } from "../services/gameDataService";
+import { useAuth } from "../context/AuthContext";
 
-const FocusTracker = () => {
+const FocusGame = () => {
+  const { user } = useAuth();
+
   const [gridSize, setGridSize] = useState(3);
   const [pattern, setPattern] = useState([]);
   const [userSelection, setUserSelection] = useState([]);
-
-  // the pattern is shown for a moment
   const [showPattern, setShowPattern] = useState(false);
-
-  const [level, setLevel] = useState(1);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
 
-  // Show pattern for a short time
-  useEffect(() => {
-    if (pattern.length > 0 && showPattern) {
-      const timer = setTimeout(() => setShowPattern(false), 1000 + gridSize * 200);
-      return () => clearTimeout(timer);
-    }
-  }, [pattern, showPattern, gridSize]);
+  const generatePattern = (size) => {
+    const count = Math.min(size, 5);
+    const total = size * size;
+    const set = new Set();
 
-  // Start a new game round
-  const startGame = () => {
+    while (set.size < count) set.add(Math.floor(Math.random() * total));
+
+    return [...set];
+  };
+
+  const startRound = () => {
     const newPattern = generatePattern(gridSize);
     setPattern(newPattern);
     setUserSelection([]);
     setShowPattern(true);
     setGameOver(false);
+
+    setTimeout(() => setShowPattern(false), 800 + gridSize * 200);
   };
 
-  // Generate random pattern
-  const generatePattern = (size) => {
-    const count = Math.min(size, 5); // number of highlighted squares
-    const total = size * size;
+  useEffect(() => {
+    startRound();
+  }, []);
 
-    const indices = new Set();
-    while (indices.size < count) {
-      indices.add(Math.floor(Math.random() * total));
-    }
-
-    return [...indices];
-  };
-
-  // user clicks tiles
-  const handleTileClick = (index) => {
+  const handleSelect = (index) => {
     if (showPattern || gameOver) return;
 
-    setUserSelection((prev) => {
-      return prev.includes(index)
-        ? prev.filter((i) => i !== index)
-        : [...prev, index];
-    });
+    setUserSelection((prev) =>
+      prev.includes(index)
+        ? prev.filter((x) => x !== index)
+        : [...prev, index]
+    );
   };
 
-  // Check accuracy
   const checkPattern = () => {
-    const correct = pattern.every((i) => userSelection.includes(i));
-    const missed = userSelection.filter((i) => !pattern.includes(i)).length;
-    const accuracy = Math.max(0, ((pattern.length - missed) / pattern.length) * 100);
+    const correct = pattern.every((p) => userSelection.includes(p));
+    const extraMistakes = userSelection.filter((x) => !pattern.includes(x)).length;
 
-    if (accuracy === 100) {
-      // Perfect
-      const newScore = score + 1;
-      setScore(newScore);
-      setLevel((prev) => prev + 1);
-      setGridSize((prev) => (prev < 6 ? prev + 1 : prev));
-
-      saveProgress(newScore);
-      startGame();
+    if (correct && extraMistakes === 0) {
+      // Level complete
+      setScore(score + 1);
+      setGridSize((g) => (g < 6 ? g + 1 : g));
+      startRound();
     } else {
-      // Game over
+      // Game Over
       setGameOver(true);
-      saveProgress(score);
-    }
-  };
 
-  // Save history + best
-  const saveProgress = (points) => {
-    const history = JSON.parse(localStorage.getItem("focusHistory")) || [];
-    const newAttempt = { attempt: history.length + 1, score: points };
-    const updated = [...history, newAttempt];
-
-    localStorage.setItem("focusHistory", JSON.stringify(updated));
-
-    const best = JSON.parse(localStorage.getItem("focusBest"));
-    if (!best || points > best) {
-      localStorage.setItem("focusBest", JSON.stringify(points));
+      // 🔥 Save score to Firestore
+      saveGameResult(user.uid, "focus", {
+        score,
+        attempt: Date.now(),
+      });
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white px-6">
-
-      <h1 className="text-4xl font-extrabold text-yellow-400 mb-4">
-        🎯 Focus Tracker
-      </h1>
-
-      <p className="text-gray-300 mb-6 text-center max-w-lg">
-        Watch carefully! Tiles will flash — then click them to repeat the pattern.
+    <div className="flex flex-col items-center min-h-screen bg-gray-950 text-white px-6">
+      <h1 className="text-4xl font-bold text-yellow-400 mt-6">🎯 Focus Game</h1>
+      <p className="text-gray-300 mb-4 mt-2">
+        Memorize the pattern, then try to repeat it!
       </p>
 
       <div
         className="grid gap-2 mb-6"
-        style={{ gridTemplateColumns: `repeat(${gridSize}, 60px)` }}
+        style={{
+          gridTemplateColumns: `repeat(${gridSize}, 60px)`,
+        }}
       >
-        {Array.from({ length: gridSize * gridSize }).map((_, index) => {
-          const isShown = showPattern && pattern.includes(index);
-          const isSelected = userSelection.includes(index);
+        {Array.from({ length: gridSize * gridSize }).map((_, i) => {
+          const isShown = showPattern && pattern.includes(i);
+          const isSelected = userSelection.includes(i);
 
           return (
             <div
-              key={index}
-              onClick={() => handleTileClick(index)}
-              className={`w-[60px] h-[60px] rounded-lg cursor-pointer transition-all duration-200 ${
+              key={i}
+              onClick={() => handleSelect(i)}
+              className={`w-[60px] h-[60px] rounded-lg transition cursor-pointer ${
                 isShown
                   ? "bg-yellow-400"
                   : isSelected
@@ -126,18 +102,16 @@ const FocusTracker = () => {
 
       {gameOver ? (
         <div className="text-center">
-          <p className="text-red-400 font-semibold mb-3">
-            ❌ Game Over! Final Score: {score}
+          <p className="text-red-400 mb-3 font-semibold">
+            ❌ Game Over — Score: {score}
           </p>
-
           <button
             onClick={() => {
-              setGridSize(3);
-              setLevel(1);
               setScore(0);
-              startGame();
+              setGridSize(3);
+              startRound();
             }}
-            className="px-5 py-2 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition"
+            className="px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400"
           >
             Restart
           </button>
@@ -145,32 +119,24 @@ const FocusTracker = () => {
       ) : (
         <button
           onClick={checkPattern}
-          className="px-5 py-2 bg-green-500 text-black rounded-lg font-semibold hover:bg-green-400 transition"
+          className="px-5 py-2 bg-green-500 text-black rounded-lg hover:bg-green-400"
         >
-          Check Pattern
+          Check
         </button>
       )}
 
-      <p className="mt-4 text-gray-300">Level: {level} | Score: {score}</p>
+      <p className="mt-4 text-gray-300">
+        Level: {gridSize - 2} | Score: {score}
+      </p>
 
-      <div className="flex flex-col items-center mt-8 gap-4">
-        <button
-          onClick={() => (window.location.href = "/dashboard")}
-          className="px-6 py-3 bg-blue-500 text-black rounded-lg font-semibold hover:bg-blue-400 transition w-40"
-        >
-          Back to Dashboard
-        </button>
-
-        <button
-          onClick={() => (window.location.href = "/progress-focus")}
-          className="px-6 py-3 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition w-40"
-        >
-          View Progress
-        </button>
-      </div>
-
+      <button
+        onClick={() => (window.location.href = "/progress-focus")}
+        className="mt-6 px-4 py-2 bg-blue-500 text-black rounded-lg hover:bg-blue-400"
+      >
+        View Progress
+      </button>
     </div>
   );
 };
 
-export default FocusTracker;
+export default FocusGame;
