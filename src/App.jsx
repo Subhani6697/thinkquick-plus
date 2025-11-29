@@ -52,6 +52,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminRoute from "./components/AdminRoute";
+import UserProfile from "./pages/UserProfile";
 
 
 function App() {
@@ -262,6 +263,15 @@ function App() {
                 <AdminRoute>
                   <AdminDashboard />
                 </AdminRoute>
+              }
+            />
+            {/* ---------- USER PROFILE ---------- */}
+              <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
               }
             />
 

@@ -1,29 +1,37 @@
+// src/services/gameDataService.js
 import { db } from "../firebase/firebaseConfig";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc,
-} from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 /*
-  Structure saved in Firestore:
-  {
-    history: [
-      { attempt: 1, value: 350 },
-      { attempt: 2, value: 290 }
-    ],
-    best: { attempt: 2, value: 290 }
-  }
+   FIRESTORE STRUCTURE FOR EACH GAME:
+
+   reaction:
+   {
+      history: [ { attempt:1, time:350 } ],
+      best: { attempt:1, time:350 }
+   }
+
+   memory:
+   {
+      history: [ { attempt:1, moves:14 } ],
+      best: { attempt:1, moves:14 }
+   }
+
+   focus:
+   {
+      history: [ { attempt:1, score:4 } ],
+      best: { attempt:1, score:4 }
+   }
 */
 
-export const saveGameResult = async (uid, game, value) => {
+
+export const saveGameResult = async (uid, game, result) => {
   if (!uid || !game) return;
 
   const userRef = doc(db, "users", uid);
-
-  // Ensure root user doc exists
   const userSnap = await getDoc(userRef);
+
+  // Ensure user doc exists
   if (!userSnap.exists()) {
     await setDoc(userRef, {
       email: "",
@@ -43,35 +51,41 @@ export const saveGameResult = async (uid, game, value) => {
     best = gameSnap.data().best || null;
   }
 
-  // Add new entry
-  const newEntry = {
-    attempt: history.length + 1,
-    value: value, // numeric score/time
-  };
+  // Determine correct field name
+  const entry =
+    game === "reaction"
+      ? { attempt: history.length + 1, time: result }
+      : game === "memory"
+      ? { attempt: history.length + 1, moves: result }
+      : { attempt: history.length + 1, score: result };
 
-  const updatedHistory = [...history, newEntry];
+  const updatedHistory = [...history, entry];
 
-  // Determine "better" rules per game
-  const isBetter =
-    best === null
-      ? true
-      : game === "focus"
-      ? value > best.value // higher is better
-      : value < best.value; // reaction & memory: lower is better
+  // Determine if new attempt is the best
+  let isBetter = false;
 
-  const updatedBest = isBetter ? newEntry : best;
+  if (!best) {
+    isBetter = true;
+  } else if (game === "reaction") {
+    isBetter = entry.time < best.time;
+  } else if (game === "memory") {
+    isBetter = entry.moves < best.moves;
+  } else if (game === "focus") {
+    isBetter = entry.score > best.score;
+  }
+
+  const updatedBest = isBetter ? entry : best;
 
   await setDoc(gameRef, {
     history: updatedHistory,
     best: updatedBest,
   });
 
-  console.log(`💾 Saved result for ${game}:`, newEntry);
+  console.log(`Saved result for ${game}`, entry);
 };
 
-// --------------------------------------------------------
-// Load Progress
-// --------------------------------------------------------
+
+// Load progress
 export const loadProgress = async (uid, game) => {
   if (!uid) return { history: [], best: null };
 
@@ -82,9 +96,8 @@ export const loadProgress = async (uid, game) => {
   return snap.data();
 };
 
-// --------------------------------------------------------
-// Reset Progress
-// --------------------------------------------------------
+
+// Reset progress
 export const resetProgress = async (uid, game) => {
   const ref = doc(db, "users", uid, "progress", game);
   await setDoc(ref, { history: [], best: null });

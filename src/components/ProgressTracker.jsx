@@ -1,8 +1,8 @@
 // src/components/ProgressTracker.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { loadProgress, resetProgress } from "../services/gameDataService";
+import { useAuth } from "../context/AuthContext";
 
 import {
   LineChart,
@@ -22,18 +22,46 @@ const ProgressTracker = ({ type }) => {
   const [best, setBest] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Correct field names per game
   const field =
-    type === "reaction" ? "time" : type === "memory" ? "moves" : "score";
+    type === "reaction"
+      ? "time"
+      : type === "memory"
+      ? "moves"
+      : "score";
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       const data = await loadProgress(user.uid, type);
-      setHistory(data.history || []);
-      setBest(data.best || null);
+
+      // FIX: Convert old entries with {value: xx} → proper field name
+      const fixedHistory = (data.history || []).map((entry) => {
+        if (entry[field] !== undefined) return entry;
+
+        // Old data present → convert
+        return {
+          attempt: entry.attempt,
+          [field]: entry.value, // convert old field
+        };
+      });
+
+      // Also fix best entry
+      const fixedBest = data.best
+        ? data.best[field] !== undefined
+          ? data.best
+          : {
+              attempt: data.best.attempt,
+              [field]: data.best.value, // convert old field
+            }
+        : null;
+
+      setHistory(fixedHistory);
+      setBest(fixedBest);
       setLoading(false);
     };
-    fetch();
-  }, [type]);
+
+    fetchData();
+  }, [type, user, field]);
 
   const handleReset = async () => {
     await resetProgress(user.uid, type);
@@ -42,25 +70,28 @@ const ProgressTracker = ({ type }) => {
   };
 
   if (loading)
-    return <p className="text-white text-center mt-10">Loading...</p>;
+    return <p className="text-center text-white mt-10">Loading...</p>;
 
   return (
-    <div className="bg-gray-800 text-white rounded-2xl p-6 shadow-lg max-w-4xl mx-auto mt-10">
-      <h2 className="text-2xl font-bold text-yellow-400 text-center mb-4">
+    <div className="bg-gray-800 text-white rounded-2xl p-6 shadow-lg w-full max-w-4xl mx-auto mt-10">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-4 text-center">
         📈 {type.toUpperCase()} Progress
       </h2>
 
-      {best !== null ? (
+      {best ? (
         <>
-          <p className="text-center text-gray-300 mb-3">
-            <span className="text-yellow-400">Best {field}:</span> {best}
+          <p className="text-center text-gray-300 mb-2">
+            <span className="font-semibold text-yellow-400">
+              Best {field}:
+            </span>{" "}
+            {best[field]}
           </p>
 
           {history.length > 0 ? (
             <div className="w-full h-64">
               <ResponsiveContainer>
                 <LineChart data={history}>
-                  <CartesianGrid stroke="#444" />
+                  <CartesianGrid stroke="#555" />
                   <XAxis dataKey="attempt" />
                   <YAxis />
                   <Tooltip />
@@ -75,25 +106,25 @@ const ProgressTracker = ({ type }) => {
             </div>
           ) : (
             <p className="text-gray-400 text-center">
-              No history yet. Play the game!
+              No history yet. Play a game!
             </p>
           )}
         </>
       ) : (
-        <p className="text-gray-400 text-center">No data yet.</p>
+        <p className="text-gray-400 text-center">No data yet. Play a game!</p>
       )}
 
-      <div className="flex justify-center gap-4 mt-6">
+      <div className="text-center mt-6 flex gap-4 justify-center">
         <button
           onClick={handleReset}
-          className="px-4 py-2 bg-red-500 text-black rounded-lg"
+          className="px-4 py-2 bg-red-500 text-black rounded-lg hover:bg-red-400 transition"
         >
-          Reset
+          Reset Progress
         </button>
 
         <button
-          onClick={() => navigate("/dashboard")}
-          className="px-4 py-2 bg-blue-500 text-black rounded-lg"
+          onClick={() => navigate(`/dashboard`)}
+          className="px-4 py-2 bg-blue-500 text-black rounded-lg hover:bg-blue-400 transition"
         >
           Dashboard
         </button>
@@ -108,9 +139,9 @@ const ProgressTracker = ({ type }) => {
                 : "/focus"
             )
           }
-          className="px-4 py-2 bg-yellow-500 text-black rounded-lg"
+          className="px-4 py-2 bg-green-500 text-black rounded-lg hover:bg-green-400 transition"
         >
-          Play
+          Play Again
         </button>
       </div>
     </div>

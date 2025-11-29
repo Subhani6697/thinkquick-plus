@@ -87,6 +87,14 @@ const Navbar = () => {
               </span>
             </span>
 
+              <Link
+              to="/profile"
+              className="px-3 py-1 bg-yellow-500 text-white rounded-lg text-sm font-semibold hover:bg-green-400 transition whitespace-nowrap"
+            >
+              Profile
+            </Link>
+
+            
             {/* Logout */}
             <button
               onClick={logout}
@@ -94,6 +102,7 @@ const Navbar = () => {
             >
               Logout
             </button>
+
           </div>
         )}
       </div>
